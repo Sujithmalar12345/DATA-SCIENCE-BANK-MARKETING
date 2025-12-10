@@ -1,0 +1,44 @@
+import zipfile
+import pandas as pd
+import os
+
+# Unzip the main file first
+zip_file_path = '/content/bank+marketing.zip'
+extract_dir = '.'
+with zipfile.ZipFile(zip_file_path, 'r') as zip_ref:
+    zip_ref.extractall(extract_dir)
+
+# Now, identify and unzip the nested 'bank-additional.zip'
+# The previous output showed that 'bank-additional.zip' was extracted to the current directory.
+nested_zip_path = os.path.join(extract_dir, 'bank-additional.zip')
+nested_extract_dir = os.path.join(extract_dir, 'bank-additional_extracted') # A new directory for the contents of nested zip
+
+# Create the directory if it doesn't exist
+os.makedirs(nested_extract_dir, exist_ok=True)
+
+with zipfile.ZipFile(nested_zip_path, 'r') as nested_zip_ref:
+    nested_zip_ref.extractall(nested_extract_dir)
+
+# Now, find the actual CSV file within the newly extracted directory
+coveted_csv_name = 'bank-additional-full.csv'
+final_csv_path = None
+
+# Walk through the nested_extract_dir to find the csv file
+for root, dirs, files in os.walk(nested_extract_dir):
+    if coveted_csv_name in files:
+        final_csv_path = os.path.join(root, coveted_csv_name)
+        break
+
+if final_csv_path:
+    # Load the dataset
+    df = pd.read_csv(final_csv_path, sep=';')
+
+    # Display the first 5 rows
+    print("\nFirst 5 rows of the DataFrame:")
+    print(df.head())
+
+    # Print concise summary of the DataFrame
+    print("\nConcise summary of the DataFrame:")
+    df.info()
+else:
+    print(f"Error: '{coveted_csv_name}' not found after extracting '{nested_zip_path}'.")
